@@ -2,7 +2,8 @@
 
 ---
 
-## Descripción General
+## Descripción Generalue hice por favor:
+
 
 Este repositorio contiene la implementación de un sistema de monitoreo en tiempo real para un almacén automatizado, desarrollado como práctica académica para demostrar el uso de Kubernetes en la orquestación de aplicaciones desacopladas.
 
@@ -83,6 +84,59 @@ El repositorio se encuentra organizado de la siguiente manera:
 - `reportaje.md`: documento técnico con las decisiones de diseño y justificación de tecnologías.
 - `README.md`: descripción general del proyecto y su arquitectura.
 - Archivo PDF: reporte final con evidencias de funcionamiento y capturas de pantalla.
+
+---
+## Cómo Utilizar y Probar el Proyecto
+
+### Requisitos Previos
+
+- Docker Desktop en ejecución  
+- Minikube  
+- kubectl configurado  
+
+---
+
+### 1. Iniciar el Clúster de Kubernetes
+
+minikube start --driver=docker
+kubectl config use-context minikube
+Verificar que el clúster esté activo:
+kubectl get nodes
+
+## 2. Desplegar el Proyecto
+Desde la carpeta raíz del repositorio:
+kubectl apply -f k8s/
+Verificar que los recursos estén creados correctamente:
+kubectl get pods
+kubectl get svc
+kubectl get pvc
+
+## 3. Verificar el Funcionamiento del Sensor
+Comprobar que el sensor genera datos cada 3 segundos:
+kubectl logs deploy/sensor-almacen -f
+En la consola se deben observar mensajes en formato JSON con los valores generados.
+
+## 4. Acceder al Cliente de Visualización
+En un entorno con Minikube:
+minikube service servicio-visualizacion
+En la interfaz web:
+Base de datos: almacen_db
+Colección: lecturas_sensor
+
+## 5. Verificar la Persistencia del Volumen
+Ejecutar el siguiente comando:
+kubectl get pvc
+El volumen debe mostrarse en estado Bound.
+
+## 6. Prueba de Resiliencia
+Eliminar manualmente el Pod de MongoDB:
+kubectl delete pod -l app=bd-almacen
+Observar cómo Kubernetes lo recrea automáticamente:
+kubectl get pods -w
+
+## Finalmente, verificar que:
+El volumen persistente sigue en estado Bound
+Los datos continúan visibles en el cliente de visualización
 
 ---
 
