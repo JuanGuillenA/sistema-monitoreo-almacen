@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+
+# Tipo de recurso. Deployment maneja la creación, reinicio y recuperación automática de pods
+kind: Deployment
+
+metadata:
+  # Nombre del Deployment de la base de datos
+  name: bd-almacen
+
+spec:
+  # Número de réplicas del Pod. Solo se pone un nodo por el momento
+  replicas: 1
+
+  # Selector que permite al deployment identificar lo spods que tiene
+  selector:
+    matchLabels:
+      app: bd-almacen
+
+  template:
+    metadata:
+      labels:
+        # identifica el pod de mongo
+        app: bd-almacen
+
+    spec:
+      containers:
+        - name: mongodb
+          # Imagen oficial de MongoDB
+          image: mongo:7
+
+          # Puerto interno donde MongoDB escucha
+          ports:
+            - containerPort: 27017
+
+          # Variables de entorno cargadas desde el secret (usuario y contraseña)
+          envFrom:
+            - secretRef:
+                name: secreto-mongodb
+
+          # persistente dentro del contenedor. /data/db es la ruta estándar donde mongo guarda los datos
+          volumeMounts:
+            - name: datos-mongodb
+              mountPath: /data/db
+
+      volumes:
+        - name: datos-mongodb
+          # Se enlaza con el PVC creado
+          persistentVolumeClaim:
+            claimName: pvc-mongodb
+
+# PRUEBA
+# kubectl apply -f 03-deployment-mongodb.yaml
+# kubectl get pods -l app=bd-almacen
+# kubectl describe pod -l app=bd-almacen
+# kubectl delete pod -l app=bd-almacen

@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+
+# Tipo de recurso
+# Deployment hace que Kubernetes maneje el ciclo de vida del pod
+kind: Deployment
+
+metadata:
+  # Nombre del Deployment del microservicio sensor
+  name: sensor-almacen
+
+spec:
+  # Número de réplicas del sensor. Se usa 1 por la practica lo amerita
+  replicas: 1
+
+  # Selector que indica qué pods controla este Deployment
+  selector:
+    matchLabels:
+      app: sensor-almacen
+
+  template:
+    metadata:
+      # Etiqueta que identifica al pod del sensor
+      labels:
+        app: sensor-almacen
+
+    spec:
+      containers:
+        - name: sensor
+          # Imagen utilizada
+          image: mongo:7
+
+          # Este comando que se ejecuta al iniciar el contenedor ejecuta el script del sensor montado desde el ConfigMap
+          command: ["/bin/bash", "/scripts/sensor.sh"]
+
+          # Variables de entorno necesarias para la autenticación
+          env:
+            - name: USUARIO
+              valueFrom:
+                secretKeyRef:
+                  name: secreto-mongodb
+                  key: MONGO_INITDB_ROOT_USERNAME
+
+            - name: CLAVE
+              valueFrom:
+                secretKeyRef:
+                  name: secreto-mongodb
+                  key: MONGO_INITDB_ROOT_PASSWORD
+
+          volumeMounts:
+            - name: scripts
+              # Carpeta donde se monta el ConfigMap
+              mountPath: /scripts
+
+      volumes:
+        - name: scripts
+          configMap:
+            name: script-sensor
+            defaultMode: 0755
+
+# PRUEBA
+# kubectl apply -f 06-deployment-sensor.yaml
+# kubectl get pods -l app=sensor-almacen
+# kubectl logs deploy/sensor-almacen -f

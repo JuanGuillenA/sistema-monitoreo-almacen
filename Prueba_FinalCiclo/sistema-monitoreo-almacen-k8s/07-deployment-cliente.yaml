@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+
+# Tipo de recurso
+# Deployment permite a Kubernetes crear y mantener, para que se vea el pod de cliente
+kind: Deployment
+
+metadata:
+  # Nombre del Deployment del cliente web
+  name: cliente-visualizacion
+
+spec:
+  replicas: 1
+
+  # Ayuda a indicar que pods maneja deployment
+  selector:
+    matchLabels:
+      app: cliente-visualizacion
+
+  template:
+    metadata:
+      # Etiqueta que identifica al Pod del cliente
+      labels:
+        app: cliente-visualizacion
+
+    spec:
+      containers:
+        - name: mongo-express
+          # Imagen de Mongo Express. Con interfaz grafica
+          image: mongo-express:1.0.2-20
+
+          # Puerto interno donde Mongo Express expone la interfaz
+          ports:
+            - containerPort: 8081
+
+          # Variables de entorno necesarias para la configuración 
+          env:
+            # Nombre del servidor MongoDB (Service interno del clúster)
+            - name: ME_CONFIG_MONGODB_SERVER
+              value: "servicio-mongodb"
+
+            # Usuario administrador se obtiene del secret
+            - name: ME_CONFIG_MONGODB_ADMINUSERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: secreto-mongodb
+                  key: MONGO_INITDB_ROOT_USERNAME
+
+            # Contraseña del usuario igual traida del secret
+            - name: ME_CONFIG_MONGODB_ADMINPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secreto-mongodb
+                  key: MONGO_INITDB_ROOT_PASSWORD
+
+            # Desactiva la autenticación básica del propio Mongo Express
+            - name: ME_CONFIG_BASICAUTH
+              value: "false"
+
+# PRUEBA
+# kubectl apply -f 07-deployment-cliente.yaml
+# kubectl get pods -l app=cliente-visualizacion
+# kubectl logs deploy/cliente-visualizacion

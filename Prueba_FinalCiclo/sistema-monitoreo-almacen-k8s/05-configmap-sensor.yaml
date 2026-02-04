@@ -1,0 +1,63 @@
+apiVersion: v1
+
+# Tipo de recurso
+# ConfigMap almacenas scripts
+kind: ConfigMap
+
+metadata:
+  # Nombre del ConfigMap, que es un archivo en el pod
+  name: script-sensor
+
+data:
+  # Nombre del archivo que se creará dentro del contenedor
+  sensor.sh: |
+    #!/bin/bash
+    # Indica que el script se ejecuta con bash
+    #!/bin/bash
+
+    # set -e hace que el script se detenga si ocurre algún error
+    # Evita bucles silenciosos en caso de fallos
+    set -e
+
+    # Identificador del sensor simulado
+    ID_SENSOR="rbt-01"
+
+    # Nombre de la base de datos en MongoDB
+    BD="almacen_db"
+
+    # Nombre de la colección donde se guardan las lecturas
+    COLECCION="lecturas_sensor"
+
+    # Bucle infinito que simula un sensor IoT
+    while true; do
+
+      # Genera un valor aleatorio entre 0 y 99
+      VALOR=$(( RANDOM % 100 ))
+
+      # Obtiene la fecha y hora actual en formato UTC (ISO 8601)
+      FECHA=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+      # Conexión a MongoDB usando usuario y contraseña
+      # Las credenciales se inyectan como variables de entorno
+      # desde el Secret (USUARIO y CLAVE)
+      mongosh "mongodb://${USUARIO}:${CLAVE}@servicio-mongodb:27017/admin" --quiet --eval "
+        db = db.getSiblingDB('${BD}');
+        db.${COLECCION}.insertOne({
+          sensor_id: '${ID_SENSOR}',
+          valor: ${VALOR},
+          timestamp: '${FECHA}'
+        });
+      " >/dev/null
+
+      # Muestra por consola el JSON insertado
+      # Esto sirve como evidencia en los logs del Pod
+      echo "{ \"sensor_id\": \"${ID_SENSOR}\", \"valor\": ${VALOR}, \"timestamp\": \"${FECHA}\" }"
+
+      # Espera 3 segundos antes de generar la siguiente lectura
+      sleep 3
+    done
+
+# PRUEBA
+# kubectl apply -f 05-configmap-sensor.yaml
+# kubectl get configmap script-sensor
+# kubectl describe configmap script-sensor

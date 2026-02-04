@@ -1,0 +1,23 @@
+apiVersion: v1
+
+# Tipo de recurso
+kind: PersistentVolumeClaim
+
+metadata:
+  # Nombre del PVC. Este es referenciando por el deployment
+  name: pvc-mongodb
+
+spec:
+  # Modo de acceso al volumen. ReadWriteOnce indica que el volumen puede ser montado 
+  # en modo lectura/escritura por un solo un pod a la vez
+  accessModes:
+    - ReadWriteOnce
+
+  resources:
+    requests:
+      # Cantidad de almacenamiento
+      storage: 1Gi
+
+# PRUEBA
+# kubectl apply -f 02-pvc-mongodb.yaml
+# kubectl get pvc

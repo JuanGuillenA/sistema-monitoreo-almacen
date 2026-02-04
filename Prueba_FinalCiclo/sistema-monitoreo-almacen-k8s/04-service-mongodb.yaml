@@ -1,0 +1,25 @@
+apiVersion: v1
+
+kind: Service
+
+metadata:
+  # Nombre del Service. Usado pormlos pods de service y de cliente
+  name: servicio-mongodb
+
+spec:
+  # Indica que pods deben dirigirse a ese service. Deb coincidir con el de mongo
+  selector:
+    app: bd-almacen
+
+  # Puertos que expone el Service
+  ports:
+    - port: 27017
+      targetPort: 27017
+
+  # Este es el tipo de service. ClusterIP expone el servicio solo dentro del clúster
+  type: ClusterIP
+
+# PRUEBA
+# kubectl apply -f 04-service-mongodb.yaml
+# kubectl get svc servicio-mongodb
+# kubectl describe svc servicio-mongodb
