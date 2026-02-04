@@ -105,7 +105,7 @@ kubectl get nodes
 
 ## 2. Desplegar el Proyecto
 Desde la carpeta raíz del repositorio:
-kubectl apply -f k8s/
+kubectl apply -f.
 Verificar que los recursos estén creados correctamente:
 kubectl get pods
 kubectl get svc
